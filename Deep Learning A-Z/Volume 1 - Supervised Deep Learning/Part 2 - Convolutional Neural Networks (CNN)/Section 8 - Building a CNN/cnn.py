@@ -15,11 +15,16 @@ from keras.layers import Conv2D
 from keras.layers import MaxPooling2D
 from keras.layers import Flatten
 from keras.layers import Dense
+from keras.layers import Dropout
+from keras.optimizers import SGD
 
 IMAGE_INPUT_X = 128
 IMAGE_INPUT_Y = 128
 BATCH_SIZE = 32
-EPOCHS = 25
+EPOCHS = 100
+LEARNING_RATE = 0.4
+DECAY = LEARNING_RATE / (EPOCHS)
+
 # Initialising the CNN
 classifier = Sequential()
 
@@ -29,7 +34,13 @@ classifier.add(Conv2D(32, kernel_size = (3, 3), input_shape = (IMAGE_INPUT_X, IM
 # Step 2 - Pooling
 classifier.add(MaxPooling2D(pool_size = (2, 2)))
 
-classifier.add(Conv2D(32, kernel_size = (3, 3), activation = 'relu'))
+classifier.add(Conv2D(64, kernel_size = (5, 5), activation = 'relu'))
+classifier.add(MaxPooling2D(pool_size = (2, 2)))
+
+classifier.add(Conv2D(128, kernel_size = (3, 3), activation = 'relu'))
+classifier.add(MaxPooling2D(pool_size = (2, 2)))
+
+classifier.add(Conv2D(128, kernel_size = (3, 3), activation = 'relu'))
 classifier.add(MaxPooling2D(pool_size = (2, 2)))
 
 # Step 3 - Flattening
@@ -37,11 +48,14 @@ classifier.add(Flatten())
 
 # Step 4 - Full Connection
 classifier.add(Dense(units = 128, activation = 'relu'))
-classifier.add(Dense(units = 128, activation = 'relu'))
+classifier.add(Dropout(p = 0.2))
+classifier.add(Dense(units = 256, activation = 'relu'))
+classifier.add(Dropout(p = 0.2))
 classifier.add(Dense(units = 1, activation = 'sigmoid'))
 
+# sgd = SGD(lr = LEARNING_RATE, momentum = 0.8, decay = DECAY, nesterov = False)
 # Compilling the CNN
-classifier.compile(optimizer = 'adadelta', loss = 'binary_crossentropy', metrics = ['accuracy'])
+classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
 
 # Part 2 - Fitting the CNN to the images
 from keras.preprocessing.image import ImageDataGenerator
@@ -91,5 +105,5 @@ else:
 
 
 
-classifier.save("model_3.h5")
+classifier.save("model_best.h5")
 del classifier
